@@ -165,7 +165,7 @@ def check():
         printstat(call_iostat('sda', 10))
 
 if __name__ == "__main__":
-    main()
+    #main()
     check()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
