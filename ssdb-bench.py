@@ -28,9 +28,9 @@ sys.path.append(os.path.join(WORKDIR, 'lib/'))
 
 
 DATA_DIR = '/home/ning/t/ssdb/'
+DEV = 'sda'
 PROC = 'ssdb-server'
 INTERVAL = 10
-
 
 g_qps = 0
 g_stat = {}
@@ -38,8 +38,8 @@ g_stat = {}
 class LoadThread(threading.Thread):
     def run(self):
         global g_qps
-        #num = 1000000000
-        num = 10000
+        num = 1000000000
+        #num = 100000
         cmd = 'redis-benchmark  -p 8888 -t set -n %s -r 100000000000 -d 100' % num
         p = Popen(cmd, shell=True, stdout=PIPE, bufsize=1024)
 
@@ -61,7 +61,7 @@ class IoStatThread(threading.Thread):
     def run(self):
         global g_stat
         while True:
-            g_stat = IoStatThread.call_iostat('sda', INTERVAL)
+            g_stat = IoStatThread.call_iostat(DEV, INTERVAL)
 
     @staticmethod
     def call_iostat(dev, interval):
