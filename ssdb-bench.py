@@ -25,12 +25,7 @@ LOGPATH = os.path.join(WORKDIR, 'log/bench.log')
 
 sys.path.append(os.path.join(WORKDIR, 'lib/'))
 
-
-
-DATA_DIR = '/home/ning/t/ssdb/'
-DEV = 'sda'
-PROC = 'ssdb-server'
-INTERVAL = 10
+from bench_conf import *
 
 g_qps = 0
 g_stat = {}
@@ -107,27 +102,37 @@ def get_proc(proc_name):
 def my_json_encode(j):
     return json.dumps(j, cls=common.MyEncoder)
 
+proc = get_proc(PROC)
+def dostat():
+    global g_stat
+    g_stat['qps'] = g_qps
+    g_stat['ts'] = time.time()
+    g_stat['du'] = get_disk_usage(DATA_DIR)
+    g_stat['cpu'] = proc.get_cpu_percent(interval=1)
+    g_stat['mem-rss'] = proc.get_memory_info().rss
+    g_stat['mem-vms'] = proc.get_memory_info().vms
+    #print g_stat
+
+    fout = file('stat.log', 'a+')
+    print >> fout, my_json_encode(g_stat)
+    fout.close()
+
 class StatThread(threading.Thread):
     def run(self):
-        global g_stat
-        proc = get_proc(PROC)
         while True:
-            time.sleep(INTERVAL)
-            g_stat['qps'] = g_qps
-            g_stat['ts'] = time.time()
-            g_stat['du'] = get_disk_usage(DATA_DIR)
-            g_stat['cpu'] = proc.get_cpu_percent(interval=1)
-            g_stat['mem-rss'] = proc.get_memory_info().rss
-            g_stat['mem-vms'] = proc.get_memory_info().vms
-            #print g_stat
-
-            fout = file('stat.log', 'a+')
-            print >> fout, my_json_encode(g_stat)
-            fout.close()
-
+            try:
+                dostat()
+                time.sleep(INTERVAL)
+            except Exception, e:
+                print time.time(), 'got Exception:', e
 
 def main():
     """docstring for main"""
+    common.system('rm stat.log')
+    fout = file('stat.log', 'a+')
+    print >> fout, 'benchmark start!!!!!!!!!!!!!!!!!!!!!!!!'
+    fout.close()
+
     logging.debug(PWD)
     LoadThread().start()
     IoStatThread().start()
@@ -137,6 +142,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
-
