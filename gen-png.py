@@ -26,7 +26,13 @@ def get_field(d, f):
     return 0
 
 def main():
-    lines = file('stat.log').readlines()
+    if len(sys.argv) != 2:
+        print sys.argv[0], 'stat.log'
+        return
+
+    fname = sys.argv[1]
+
+    lines = file(fname).readlines()
     lines = [common.json_decode(line) for line in lines if line.startswith('{')]
     lines = [line for line in lines if 'ts' in line]
     fields = ['qps', 'cpu', 'du', 'mem-vms',
@@ -40,10 +46,10 @@ def main():
     for i, f in enumerate(fields):
         p = subplots[i]
         y = [get_field(line, f) for line in lines]
-        p.plot(y, 'r')
+        p.plot(y, 'r', linewidth=0.3)
         p.set_title(f)
         plt.setp(p.get_xticklabels(), visible=False)
-    plt.savefig('test.png', dpi=300)
+    plt.savefig(fname+'.png', dpi=100)
 
 if __name__ == "__main__":
     main()
